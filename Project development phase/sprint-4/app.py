@@ -1,30 +1,37 @@
+from flask import Flask, render_template, request
 import numpy as np
-import pandas as pd 
-from flask import Flask,request,render_template
 import pickle
+
+
 app = Flask(__name__)
-model = pickle.load(open('CKD.pkl','rb'))
+model = pickle.load(open('CKD.pkl', 'rb'))
+
 @app.route('/')
-def home():
-    return render_template('home.html')
-@app.route('/Prediction',methods=['Post','Get'])
-def prediction():
-    return render_template('predictor.html')
-@app.route('/Home',methods=['Post','Get'])
-def my_home():
-    return render_template('home.html')
+def Home():
+    return render_template('Home.html')
 
-@app.route('/predict',methods=['Post'])
+@app.route('/index',methods=['GET','POST'])
+def index():
+    return render_template('index.html')
+
+@app.route("/predict", methods=['POST'])
 def predict():
-    input_feature = [float(x) for x in request.form.values()]
-    features_value = [np.array(input_feature)]
+    if request.method == 'POST':
+        bu = float(request.form['bu'])
+        bgr = float(request.form['bgr'])
+        cad = float(request.form['cad'])
+        ane = float(request.form['ane'])
+        pc = float(request.form['pc'])
+        rbc = float(request.form['rbc'])
+        dm = float(request.form['dm'])
+        pe = float(request.form['pe'])
 
-    features_name = ['blood_urea','blood glucose random','coronary_artery_disease',
-    'anemia','pus_cell','red_blood_cells','diabetesmellitus','pedal_edema']
+        values = np.array([[rbc,pc,bgr,bu,pe,ane,dm,cad]])
+        prediction = model.predict(values)
 
-    df = pd.DataFrame(features_value, columns=features_name)
-    output = model.predict(df)
-    return render_template('result.html',prediction_text=output)
+        return render_template('result.html', prediction=prediction)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)
+
